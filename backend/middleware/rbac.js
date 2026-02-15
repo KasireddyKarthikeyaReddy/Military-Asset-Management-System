@@ -1,18 +1,21 @@
 // Role-Based Access Control Middleware
 
+/* =====================================================
+   ROLE CHECK
+===================================================== */
 export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Authentication required.' 
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required.'
       });
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Insufficient permissions for this action.' 
+      return res.status(403).json({
+        success: false,
+        message: 'Insufficient permissions for this action.'
       });
     }
 
@@ -20,73 +23,116 @@ export const requireRole = (...allowedRoles) => {
   };
 };
 
-// Middleware to check if user can access a specific base
-export const requireBaseAccess = async (req, res, next) => {
+
+/* =====================================================
+   BASE ACCESS CONTROL
+===================================================== */
+export const requireBaseAccess = (req, res, next) => {
   try {
     const user = req.user;
-    const baseId = req.params.baseId || req.body.baseId || req.query.baseId;
 
-    // Admin has access to all bases
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required.'
+      });
+    }
+
+    const baseId =
+      req.params.baseId ||
+      req.body.baseId ||
+      req.query.baseId;
+
+    // ✅ Admin → Full access
     if (user.role === 'admin') {
       return next();
     }
 
-    // Base Commander can only access their assigned base
+    // ✅ Base Commander → Only their assigned base
     if (user.role === 'base_commander') {
       if (!user.baseId) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Base Commander not assigned to any base.' 
+        return res.status(403).json({
+          success: false,
+          message: 'Base Commander not assigned to any base.'
         });
       }
-      
-      if (baseId && parseInt(baseId) !== user.baseId) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Access denied to this base.' 
+
+      if (baseId && Number(baseId) !== Number(user.baseId)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied to this base.'
         });
       }
-      
-      // Set baseId in request for base commanders
-      req.user.baseId = user.baseId;
+
+      // Force baseId to their base
+      req.body.baseId = user.baseId;
+      req.query.baseId = user.baseId;
+
       return next();
     }
 
-    // Logistics Officer has access to all bases for purchases and transfers
+    // ✅ Logistics Officer → Only their assigned base
     if (user.role === 'logistics_officer') {
+      if (!user.baseId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Logistics Officer not assigned to any base.'
+        });
+      }
+
+      if (baseId && Number(baseId) !== Number(user.baseId)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied to this base.'
+        });
+      }
+
+      // Force base restriction
+      req.body.baseId = user.baseId;
+      req.query.baseId = user.baseId;
+
       return next();
     }
 
-    return res.status(403).json({ 
-      success: false, 
-      message: 'Insufficient permissions.' 
+    return res.status(403).json({
+      success: false,
+      message: 'Unauthorized role.'
     });
+
   } catch (error) {
-    res.status(500).json({ 
-      success: false, 
-      message: 'Authorization error.', 
-      error: error.message 
+    return res.status(500).json({
+      success: false,
+      message: 'Authorization error.',
+      error: error.message
     });
   }
 };
 
-// Middleware to filter data based on role
+
+/* =====================================================
+   AUTOMATIC BASE FILTER FOR QUERIES
+===================================================== */
 export const filterByBase = (req, res, next) => {
   const user = req.user;
-  
-  // Admin and Logistics Officer see all bases
-  if (user.role === 'admin' || user.role === 'logistics_officer') {
+
+  if (!user) {
     return next();
   }
-  
-  // Base Commander only sees their base
-  if (user.role === 'base_commander' && user.baseId) {
+
+  // Admin → See everything
+  if (user.role === 'admin') {
+    return next();
+  }
+
+  // Base Commander & Logistics → Only their base
+  if (user.baseId) {
     req.query.baseId = user.baseId;
-    if (req.body.baseId) {
-      // Don't allow base commanders to change baseId in body
+
+    // Prevent body manipulation
+    if (req.body.baseId && Number(req.body.baseId) !== Number(user.baseId)) {
       req.body.baseId = user.baseId;
     }
   }
-  
+
   next();
 };
