@@ -5,11 +5,18 @@ import User from '../models/User.js';
 import Base from '../models/Base.js';
 
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
-  });
+  return jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: process.env.JWT_EXPIRE || '7d'
+    }
+  );
 };
 
+/* =====================================================
+   REGISTER USER
+===================================================== */
 export const register = async (req, res, next) => {
   try {
     const { username, email, password, role, baseId, fullName } = req.body;
@@ -37,7 +44,7 @@ export const register = async (req, res, next) => {
       }
     }
 
-    // 🔐 Hash password before saving
+    // 🔐 Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -46,7 +53,8 @@ export const register = async (req, res, next) => {
       password: hashedPassword,
       role: role || 'logistics_officer',
       baseId,
-      fullName
+      fullName,
+      isActive: true   // ensure user is active by default
     });
 
     const token = generateToken(user.id);
@@ -66,11 +74,16 @@ export const register = async (req, res, next) => {
         }
       }
     });
+
   } catch (error) {
     next(error);
   }
 };
 
+
+/* =====================================================
+   LOGIN USER
+===================================================== */
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -91,14 +104,15 @@ export const login = async (req, res, next) => {
       }]
     });
 
-    if (!user || !user.isActive === false) {
+    // ✅ FIXED CONDITION
+    if (!user || user.isActive === false) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
-    // 🔐 Compare hashed password
+    // 🔐 Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
@@ -126,11 +140,16 @@ export const login = async (req, res, next) => {
         }
       }
     });
+
   } catch (error) {
     next(error);
   }
 };
 
+
+/* =====================================================
+   GET PROFILE
+===================================================== */
 export const getProfile = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.user.id, {
@@ -146,6 +165,7 @@ export const getProfile = async (req, res, next) => {
       success: true,
       data: { user }
     });
+
   } catch (error) {
     next(error);
   }
