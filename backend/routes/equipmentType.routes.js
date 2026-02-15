@@ -1,23 +1,27 @@
 import express from 'express';
 import {
   createEquipmentType,
-  getEquipmentTypes,
-  getEquipmentTypeById
+  getEquipmentTypes
 } from '../controllers/equipmentType.controller.js';
 import { authenticate } from '../middleware/auth.js';
-import { requireRole } from '../middleware/rbac.js';
 
 const router = express.Router();
 
-// All routes require authentication
+// All equipment type routes require authentication
 router.use(authenticate);
 
-// Admin only create
-router.post('/', requireRole('admin'), createEquipmentType);
+/**
+ * @route   POST /api/equipment-types
+ * @desc    Create new equipment type
+ * @access  Authenticated users (you can later restrict to admin only)
+ */
+router.post('/', createEquipmentType);
 
-// Admin + Logistics + Commander can view
-router.get('/', requireRole('admin', 'logistics_officer', 'base_commander'), getEquipmentTypes);
-
-router.get('/:id', requireRole('admin', 'logistics_officer', 'base_commander'), getEquipmentTypeById);
+/**
+ * @route   GET /api/equipment-types
+ * @desc    Get all equipment types
+ * @access  Authenticated users
+ */
+router.get('/', getEquipmentTypes);
 
 export default router;
