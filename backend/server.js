@@ -15,6 +15,8 @@ import assignmentRoutes from './routes/assignment.routes.js';
 import expenditureRoutes from './routes/expenditure.routes.js';
 import userRoutes from './routes/user.routes.js';
 import assetRoutes from './routes/asset.routes.js';
+import baseRoutes from './routes/base.routes.js';
+
 
 dotenv.config();
 
@@ -72,6 +74,8 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/expenditures', expenditureRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/bases', baseRoutes);
+
 
 /* =========================
    404 Handler
