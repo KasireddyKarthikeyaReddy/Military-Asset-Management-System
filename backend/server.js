@@ -3,7 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { sequelize } from './config/database.js';
-import './models/index.js'; // VERY IMPORTANT (loads associations)
+import './models/index.js';
 import errorHandler from './middleware/errorHandler.js';
 
 // Import routes
@@ -22,13 +22,28 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 /* =========================
-   Global Middleware
+   CORS CONFIGURATION (FIXED)
 ========================= */
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://military-asset-management-system-gamma.vercel.app'
+];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
+
+/* =========================
+   Global Middleware
+========================= */
 
 app.use(morgan('dev'));
 app.use(express.json());
@@ -84,14 +99,8 @@ const startServer = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully.');
 
-    /**
-     * 🔥 TEMPORARY FIX (RUN ONCE)
-     * Change to force: true if audit_logs table does not exist
-     * After successful run, change back to alter: true
-     */
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
- // 👈 RUN ONCE
       console.log('✅ Database models synchronized.');
     }
 
