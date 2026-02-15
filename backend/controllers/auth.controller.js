@@ -44,17 +44,17 @@ export const register = async (req, res, next) => {
       }
     }
 
-    // 🔐 Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // ❌ DO NOT HASH HERE
+    // Model hook will hash automatically
 
     const user = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password,   // ✅ send plain password
       role: role || 'logistics_officer',
       baseId,
       fullName,
-      isActive: true   // ensure user is active by default
+      isActive: true
     });
 
     const token = generateToken(user.id);
@@ -104,7 +104,6 @@ export const login = async (req, res, next) => {
       }]
     });
 
-    // ✅ FIXED CONDITION
     if (!user || user.isActive === false) {
       return res.status(401).json({
         success: false,
