@@ -91,7 +91,7 @@ export const login = async (req, res, next) => {
       }]
     });
 
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive === false) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
