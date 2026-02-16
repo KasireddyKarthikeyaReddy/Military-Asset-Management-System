@@ -30,13 +30,18 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700">
       <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Military Asset Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Military Asset Management
+          </h1>
           <p className="mt-2 text-gray-600">Sign in to your account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700"
+            >
               Email
             </label>
             <input
@@ -46,12 +51,15 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-              placeholder="admin@military.gov"
+              placeholder="loginuser1@military.gov"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
               Password
             </label>
             <input
@@ -74,12 +82,33 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-sm text-gray-600">
-          <p className="font-semibold mb-2">Test Credentials:</p>
-          <p>Admin: admin@military.gov / admin123</p>
-          <p>Base Commander: commander1@military.gov / commander123</p>
-          <p>Logistics: logistics1@military.gov / logistics123</p>
+        {/* Updated Demo Credentials */}
+        <div className="mt-6 text-sm text-gray-600 border-t pt-4">
+          <p className="font-semibold mb-3 text-gray-800">
+            Demo Login Credentials:
+          </p>
+
+          <div className="space-y-2">
+            <p>
+              <strong>Admin</strong><br />
+              Email: loginuser1@military.gov<br />
+              Password: admin123
+            </p>
+
+            <p>
+              <strong>Base Commander</strong><br />
+              Email: commander1@military.gov<br />
+              Password: commander123
+            </p>
+
+            <p>
+              <strong>Logistics Officer</strong><br />
+              Email: logistics1@military.gov<br />
+              Password: logistics123
+            </p>
+          </div>
         </div>
+
       </div>
     </div>
   );
