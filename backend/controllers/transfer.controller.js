@@ -6,15 +6,30 @@ import User from '../models/User.js';
 
 export const createTransfer = async (req, res, next) => {
   try {
-    const { assetId, fromBaseId, toBaseId, reason } = req.body;
+    const { assetId, fromBaseId, toBaseId, transferType, reason } = req.body;
+
+    // ✅ Basic validation
+    if (!assetId || !fromBaseId || !toBaseId || !transferType) {
+      return res.status(400).json({
+        success: false,
+        message: 'assetId, fromBaseId, toBaseId and transferType are required'
+      });
+    }
 
     const asset = await Asset.findByPk(assetId);
+
     if (!asset) {
-      return res.status(404).json({ success: false, message: 'Asset not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Asset not found'
+      });
     }
 
     if (asset.baseId !== fromBaseId) {
-      return res.status(400).json({ success: false, message: 'Asset not at source base' });
+      return res.status(400).json({
+        success: false,
+        message: 'Asset not at source base'
+      });
     }
 
     const transfer = await Transfer.create({
@@ -22,10 +37,12 @@ export const createTransfer = async (req, res, next) => {
       assetId,
       fromBaseId,
       toBaseId,
+      transferType, // ✅ FIX ADDED HERE
       reason,
       createdBy: req.user.id
     });
 
+    // ✅ Update asset base
     await asset.update({
       baseId: toBaseId,
       status: 'available'
